@@ -1,0 +1,6 @@
+{
+  "name": "Peak Day",
+  "description": "Plan. Track. Improve. The personal all-in-one student productivity platform combining schedule planner, daily tasks, workout tracker, and academics with AI personal tutor.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

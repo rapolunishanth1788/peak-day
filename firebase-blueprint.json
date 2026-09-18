@@ -1,0 +1,107 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with academic, professional, and lifestyle goals",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "age": { "type": "number" },
+        "occupation": { "type": "string", "enum": ["student", "job", "both"] },
+        "primaryGoals": { "type": "string" },
+        "studyingFor": { "type": "string" },
+        "targetDailyHours": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "email"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "Daily productivity task with subtasks and attachments",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "dueDate": { "type": "string" },
+        "dueTime": { "type": "string" },
+        "priority": { "type": "string" },
+        "category": { "type": "string" },
+        "completed": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "title"]
+    },
+    "Schedule": {
+      "title": "Schedule",
+      "description": "Calendar schedule event or class",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "date": { "type": "string" },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" },
+        "location": { "type": "string" },
+        "notes": { "type": "string" },
+        "color": { "type": "string" }
+      },
+      "required": ["id", "userId", "title"]
+    },
+    "WorkoutPlan": {
+      "title": "WorkoutPlan",
+      "description": "Routine split and exercises",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["id", "userId", "name"]
+    },
+    "DocumentAttachment": {
+      "title": "DocumentAttachment",
+      "description": "Uploaded PDF or PNG attachment for timetable, syllabus, or routines",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "section": { "type": "string" },
+        "fileName": { "type": "string" },
+        "fileType": { "type": "string" },
+        "fileUrl": { "type": "string" },
+        "fileSize": { "type": "number" },
+        "uploadedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "section", "fileName"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile documents"
+    },
+    "/users/{userId}/tasks/{taskId}": {
+      "schema": "Task",
+      "description": "User daily tasks"
+    },
+    "/users/{userId}/schedules/{scheduleId}": {
+      "schema": "Schedule",
+      "description": "User schedule events and classes"
+    },
+    "/users/{userId}/workoutPlans/{planId}": {
+      "schema": "WorkoutPlan",
+      "description": "User workout routines"
+    },
+    "/users/{userId}/attachments/{attachmentId}": {
+      "schema": "DocumentAttachment",
+      "description": "User uploaded document files (PDF / PNG)"
+    }
+  }
+}
