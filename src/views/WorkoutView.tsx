@@ -21,6 +21,7 @@ import { WorkoutPlan, WorkoutLog, Exercise, DocumentAttachment, User, AICopilotA
 import { api, UserFullData } from '../services/api';
 import { DocumentUploadZone } from '../components/DocumentUploadZone';
 import { SectionAIAssistant } from '../components/SectionAIAssistant';
+import { SectionPlanFlow } from '../components/SectionPlanFlow';
 
 interface WorkoutViewProps {
   user: User;
@@ -210,13 +211,15 @@ export const WorkoutView: React.FC<WorkoutViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2.5">
-          <button
-            onClick={() => setActiveMainTab('aiCoach')}
-            className="px-3.5 py-2 rounded-xl bg-purple-600/20 border border-purple-500/40 hover:border-purple-400 text-purple-300 text-xs sm:text-sm font-semibold flex items-center gap-2 shadow-lg shadow-purple-500/10 transition-all hover:scale-[1.02]"
-          >
-            <Sparkles className="w-4 h-4 text-purple-400" />
-            <span>AI Workout Coach</span>
-          </button>
+          {/* First: small button "Plan Workout" with options ("With AI" or "Upload File") -> file upload modal -> last button */}
+          <SectionPlanFlow
+            section="workout"
+            user={user}
+            data={data}
+            onApplyAction={onApplyAction}
+            onAddAttachment={onAddAttachment}
+            onOpenFullAI={() => setActiveMainTab('aiCoach')}
+          />
         </div>
       </div>
 
@@ -734,15 +737,6 @@ export const WorkoutView: React.FC<WorkoutViewProps> = ({
           </div>
         </div>
       )}
-
-      {/* Upload PNG/PDF Workout Routine Section */}
-      <DocumentUploadZone
-        section="workout"
-        sectionTitle="Workout Routine & Nutrition"
-        attachments={attachments}
-        onAddAttachment={onAddAttachment || (() => {})}
-        onDeleteAttachment={onDeleteAttachment || (() => {})}
-      />
     </div>
   );
 };

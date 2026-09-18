@@ -36,8 +36,8 @@ import {
   AICopilotAction
 } from '../types';
 import { api, UserFullData } from '../services/api';
-import { DocumentUploadZone } from '../components/DocumentUploadZone';
 import { SectionAIAssistant } from '../components/SectionAIAssistant';
+import { SectionPlanFlow } from '../components/SectionPlanFlow';
 
 interface AcademicsViewProps {
   user?: User;
@@ -273,6 +273,17 @@ export const AcademicsView: React.FC<AcademicsViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2.5">
+          {user && data && onApplyAction && (
+            <SectionPlanFlow
+              section="academics"
+              user={user}
+              data={data}
+              onApplyAction={onApplyAction}
+              onAddAttachment={onAddAttachment}
+              onOpenFullAI={() => setActiveSubTab('aiCopilot')}
+            />
+          )}
+
           <button
             onClick={() => setActiveSubTab('aiCopilot')}
             className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-600/20 via-orange-600/20 to-yellow-600/20 border border-amber-500/40 hover:border-amber-400 text-amber-300 text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all self-start sm:self-auto hover:scale-[1.02]"
@@ -1105,15 +1116,6 @@ export const AcademicsView: React.FC<AcademicsViewProps> = ({
           </div>
         </div>
       )}
-
-      {/* Upload PNG/PDF Academic Materials Section */}
-      <DocumentUploadZone
-        section="academics"
-        sectionTitle="Academic Syllabi & Study Materials"
-        attachments={attachments}
-        onAddAttachment={onAddAttachment || (() => {})}
-        onDeleteAttachment={onDeleteAttachment || (() => {})}
-      />
     </div>
   );
 };

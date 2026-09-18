@@ -14,6 +14,7 @@ const SECTION_NAMES: Record<AISectionType, string> = {
   tasks: 'AI Strategist',
   academics: 'AI Professor',
   global: 'Peak AI',
+  all: 'Peak AI Copilot',
 };
 
 export const FloatingCopilotButton: React.FC<FloatingCopilotButtonProps> = ({

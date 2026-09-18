@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   User, 
   ScheduleEvent, 
@@ -468,83 +469,94 @@ export default function App() {
         />
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
-          {activeTab === 'home' && (
-            <HomeView user={user} data={data} onNavigate={setActiveTab} />
-          )}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.18, ease: [0.25, 1, 0.5, 1] }}
+              className="w-full"
+            >
+              {activeTab === 'home' && (
+                <HomeView user={user} data={data} onNavigate={setActiveTab} />
+              )}
 
-          {activeTab === 'schedule' && (
-            <ScheduleView
-              events={data.schedules}
-              tasks={data.tasks}
-              attachments={data.attachments || []}
-              user={user}
-              data={data}
-              onAddEvent={handleAddEvent}
-              onUpdateEvent={handleUpdateEvent}
-              onDeleteEvent={handleDeleteEvent}
-              onApplyProposedSchedule={handleApplyProposedSchedule}
-              onApplyAction={handleApplyCopilotAction}
-              onAddAttachment={handleAddAttachment}
-              onDeleteAttachment={handleDeleteAttachment}
-            />
-          )}
+              {activeTab === 'schedule' && (
+                <ScheduleView
+                  events={data.schedules}
+                  tasks={data.tasks}
+                  attachments={data.attachments || []}
+                  user={user}
+                  data={data}
+                  onAddEvent={handleAddEvent}
+                  onUpdateEvent={handleUpdateEvent}
+                  onDeleteEvent={handleDeleteEvent}
+                  onApplyProposedSchedule={handleApplyProposedSchedule}
+                  onApplyAction={handleApplyCopilotAction}
+                  onAddAttachment={handleAddAttachment}
+                  onDeleteAttachment={handleDeleteAttachment}
+                />
+              )}
 
-          {activeTab === 'tasks' && (
-            <TasksView
-              user={user}
-              data={data}
-              tasks={data.tasks}
-              attachments={data.attachments || []}
-              onAddTask={handleAddTask}
-              onUpdateTask={handleUpdateTask}
-              onDeleteTask={handleDeleteTask}
-              onToggleComplete={handleToggleTaskComplete}
-              onApplyAction={handleApplyCopilotAction}
-              onAddAttachment={handleAddAttachment}
-              onDeleteAttachment={handleDeleteAttachment}
-            />
-          )}
+              {activeTab === 'tasks' && (
+                <TasksView
+                  user={user}
+                  data={data}
+                  tasks={data.tasks}
+                  attachments={data.attachments || []}
+                  onAddTask={handleAddTask}
+                  onUpdateTask={handleUpdateTask}
+                  onDeleteTask={handleDeleteTask}
+                  onToggleComplete={handleToggleTaskComplete}
+                  onApplyAction={handleApplyCopilotAction}
+                  onAddAttachment={handleAddAttachment}
+                  onDeleteAttachment={handleDeleteAttachment}
+                />
+              )}
 
-          {activeTab === 'workout' && (
-            <WorkoutView
-              user={user}
-              data={data}
-              workoutPlans={data.workoutPlans}
-              workoutLogs={data.workoutLogs || []}
-              attachments={data.attachments || []}
-              onSaveWorkoutPlan={handleSaveWorkoutPlan}
-              onLogWorkout={handleLogWorkout}
-              onApplyAction={handleApplyCopilotAction}
-              onAddAttachment={handleAddAttachment}
-              onDeleteAttachment={handleDeleteAttachment}
-            />
-          )}
+              {activeTab === 'workout' && (
+                <WorkoutView
+                  user={user}
+                  data={data}
+                  workoutPlans={data.workoutPlans}
+                  workoutLogs={data.workoutLogs || []}
+                  attachments={data.attachments || []}
+                  onSaveWorkoutPlan={handleSaveWorkoutPlan}
+                  onLogWorkout={handleLogWorkout}
+                  onApplyAction={handleApplyCopilotAction}
+                  onAddAttachment={handleAddAttachment}
+                  onDeleteAttachment={handleDeleteAttachment}
+                />
+              )}
 
-          {activeTab === 'academics' && (
-            <AcademicsView
-              user={user}
-              data={data}
-              subjects={data.subjects}
-              attendance={data.attendance}
-              attachments={data.attachments || []}
-              onUpdateUser={handleUpdateUser}
-              onUpdateSubject={handleUpdateSubject}
-              onAddSubject={handleAddSubject}
-              onUpdateAttendance={handleUpdateAttendance}
-              onApplyAction={handleApplyCopilotAction}
-              onAddAttachment={handleAddAttachment}
-              onDeleteAttachment={handleDeleteAttachment}
-            />
-          )}
+              {activeTab === 'academics' && (
+                <AcademicsView
+                  user={user}
+                  data={data}
+                  subjects={data.subjects}
+                  attendance={data.attendance}
+                  attachments={data.attachments || []}
+                  onUpdateUser={handleUpdateUser}
+                  onUpdateSubject={handleUpdateSubject}
+                  onAddSubject={handleAddSubject}
+                  onUpdateAttendance={handleUpdateAttendance}
+                  onApplyAction={handleApplyCopilotAction}
+                  onAddAttachment={handleAddAttachment}
+                  onDeleteAttachment={handleDeleteAttachment}
+                />
+              )}
 
-          {activeTab === 'settings' && (
-            <SettingsView
-              user={user}
-              data={data}
-              onUpdateUser={handleUpdateUser}
-              onLogout={handleLogout}
-            />
-          )}
+              {activeTab === 'settings' && (
+                <SettingsView
+                  user={user}
+                  data={data}
+                  onUpdateUser={handleUpdateUser}
+                  onLogout={handleLogout}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
 

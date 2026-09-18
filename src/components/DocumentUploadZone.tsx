@@ -29,7 +29,6 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
   onAddAttachment,
   onDeleteAttachment,
 }) => {
-  const [isDragging, setIsDragging] = useState(false);
   const [customNote, setCustomNote] = useState('');
   const [previewItem, setPreviewItem] = useState<DocumentAttachment | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -89,12 +88,6 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
     reader.readAsDataURL(file);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    handleFiles(e.dataTransfer.files);
-  };
-
   const formatSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -139,20 +132,10 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
         </div>
       )}
 
-      {/* Drag and Drop Zone */}
+      {/* File Upload Trigger */}
       <div
-        onDragOver={(e) => {
-          e.preventDefault();
-          setIsDragging(true);
-        }}
-        onDragLeave={() => setIsDragging(false)}
-        onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
-        className={`relative cursor-pointer border-2 border-dashed rounded-xl p-5 text-center transition-all ${
-          isDragging 
-            ? 'border-blue-500 bg-blue-500/10 scale-[1.01]' 
-            : 'border-slate-700/80 hover:border-slate-600 bg-slate-900/40 hover:bg-slate-900/70'
-        }`}
+        className="relative cursor-pointer rounded-xl p-4 sm:p-5 text-center transition-all border border-slate-700/80 hover:border-blue-500/60 bg-slate-900/60 hover:bg-slate-900/90 group"
       >
         <input
           ref={fileInputRef}
@@ -163,15 +146,15 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
         />
 
         <div className="flex flex-col items-center justify-center gap-2">
-          <div className="w-10 h-10 rounded-full bg-blue-600/10 border border-blue-500/30 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
-            <Upload className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-blue-600/15 border border-blue-500/30 flex items-center justify-center text-blue-400 group-hover:scale-105 transition-transform">
+            <Upload className="w-5 h-5 text-blue-400" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-200">
-              {isUploading ? 'Uploading file...' : 'Drop your PDF or PNG here, or click to browse'}
-            </p>
-            <p className="text-[11px] text-slate-500 mt-0.5">
-              Supports .pdf, .png, .jpg up to 50MB
+            <span className="inline-block px-3 py-1 rounded-lg bg-blue-600 group-hover:bg-blue-500 text-white text-xs font-semibold shadow-sm transition-colors">
+              {isUploading ? 'Uploading file...' : 'Choose File to Upload'}
+            </span>
+            <p className="text-[11px] text-slate-400 mt-1.5">
+              Select PDF, PNG, or JPG (up to 50MB)
             </p>
           </div>
         </div>

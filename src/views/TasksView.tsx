@@ -17,8 +17,8 @@ import {
 } from 'lucide-react';
 import { Task, Priority, TaskCategory, DocumentAttachment, User, AICopilotAction } from '../types';
 import { UserFullData } from '../services/api';
-import { DocumentUploadZone } from '../components/DocumentUploadZone';
 import { SectionAIAssistant } from '../components/SectionAIAssistant';
+import { SectionPlanFlow } from '../components/SectionPlanFlow';
 
 interface TasksViewProps {
   user: User;
@@ -195,17 +195,20 @@ export const TasksView: React.FC<TasksViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2.5">
-          <button
-            onClick={() => setFilterView('aiAssistant')}
-            className="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600/20 via-teal-600/20 to-blue-600/20 border border-emerald-500/40 hover:border-emerald-400 text-emerald-300 text-xs sm:text-sm font-semibold flex items-center gap-2 shadow-lg shadow-emerald-500/10 transition-all hover:scale-[1.02]"
-          >
-            <Sparkles className="w-4 h-4 text-emerald-400 animate-pulse" />
-            <span>AI Task Assistant</span>
-          </button>
+          {/* Plan Tasks with 3 Options: 1.Manual, 2.AI, 3.Upload File (Auto-Scan) */}
+          <SectionPlanFlow
+            section="tasks"
+            user={user}
+            data={data}
+            onApplyAction={onApplyAction}
+            onAddAttachment={onAddAttachment}
+            onOpenFullAI={() => setFilterView('aiAssistant')}
+            onManualCreate={handleOpenAdd}
+          />
 
           <button
             onClick={handleOpenAdd}
-            className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-semibold flex items-center gap-2 shadow-md shadow-emerald-600/20 transition-all hover:scale-[1.02] self-start sm:self-auto"
+            className="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition-all hover:scale-[1.02] self-start sm:self-auto"
           >
             <Plus className="w-4 h-4" />
             <span>New Task</span>
@@ -613,15 +616,6 @@ export const TasksView: React.FC<TasksViewProps> = ({
           </div>
         </div>
       )}
-
-      {/* Upload PNG/PDF Daily Tasks Guidelines */}
-      <DocumentUploadZone
-        section="tasks"
-        sectionTitle="Daily Tasks & Guidelines"
-        attachments={attachments}
-        onAddAttachment={onAddAttachment || (() => {})}
-        onDeleteAttachment={onDeleteAttachment || (() => {})}
-      />
     </div>
   );
 };

@@ -84,6 +84,13 @@ const SECTION_METADATA: Record<AISectionType, { title: string; subtitle: string;
     color: 'text-cyan-400',
     bgBadge: 'bg-cyan-500/15 border-cyan-500/30 text-cyan-300',
   },
+  all: {
+    title: 'Peak AI Copilot (All Sections)',
+    subtitle: 'Unified multi-section planner: schedule, workout split, tasks, and academics',
+    icon: Sparkles,
+    color: 'text-indigo-400',
+    bgBadge: 'bg-indigo-500/15 border-indigo-500/30 text-indigo-300',
+  },
 };
 
 const PROMPT_SUGGESTIONS: Record<AISectionType, string[]> = {
@@ -117,6 +124,12 @@ const PROMPT_SUGGESTIONS: Record<AISectionType, string[]> = {
     'Add my university lecture at 11 AM and schedule 45 mins gym afterward',
     'Set up a high-performance routine based on my goals',
   ],
+  all: [
+    'Create a coordinated plan for all sections: classes, workout split, tasks, and academics',
+    'Auto-scan and populate timetable, study blocks, tasks, and routine',
+    'Build an intensive exam week plan across my entire schedule and tasks',
+    'Balance my university week with workouts, lecture blocks, and homework',
+  ],
 };
 
 export const SectionAIAssistant: React.FC<SectionAIAssistantProps> = ({
@@ -141,7 +154,6 @@ export const SectionAIAssistant: React.FC<SectionAIAssistantProps> = ({
 
   // File Upload State
   const [attachedFiles, setAttachedFiles] = useState<AICopilotAttachedFile[]>([]);
-  const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -161,6 +173,7 @@ export const SectionAIAssistant: React.FC<SectionAIAssistantProps> = ({
         tasks: `Hello ${user.name.split(' ')[0]}! I am your **Task AI Strategist**. I can break down large projects into bite-sized steps, prioritize urgent deadlines, or add new tasks directly to your board. Feel free to upload project rubrics or assignment sheets!`,
         academics: `Greetings ${user.name.split(' ')[0]}! I am your **Academic AI Professor**. I can break down complex university concepts, structure course syllabi, build exam schedules, and optimize attendance targets. You can upload textbook chapters or syllabus PDFs!`,
         global: `Hello ${user.name.split(' ')[0]}! I am **Peak AI Copilot**. I coordinate across your schedule, workout plan, tasks, and academics. Upload any schedule photo, syllabus PDF, or workout routine to auto-configure your system!`,
+        all: `Hello ${user.name.split(' ')[0]}! I am **Peak AI Copilot**. I automatically coordinate and plan across all sections: your Schedule, Workout Plan, Tasks, and Academics. Upload any timetable, routine photo, or syllabus PDF to auto-scan!`,
       };
 
       setMessages([
@@ -232,28 +245,6 @@ export const SectionAIAssistant: React.FC<SectionAIAssistantProps> = ({
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
-
-  // Drag & Drop handlers
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingOver(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingOver(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      processFiles(e.dataTransfer.files);
-    }
   };
 
   const handleSendMessage = async (textToSend?: string) => {
@@ -335,31 +326,8 @@ export const SectionAIAssistant: React.FC<SectionAIAssistantProps> = ({
 
   return (
     <div 
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
       className={`relative flex flex-col bg-[#0b101e]/90 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-md ${isDrawer ? 'h-full' : 'h-[640px]'}`}
     >
-      {/* Drag & Drop Visual Backdrop */}
-      <AnimatePresence>
-        {isDraggingOver && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 z-50 bg-blue-950/85 backdrop-blur-md border-2 border-dashed border-blue-400 rounded-3xl flex flex-col items-center justify-center p-6 text-center pointer-events-none"
-          >
-            <div className="w-16 h-16 rounded-2xl bg-blue-500/20 border border-blue-400/40 flex items-center justify-center text-blue-300 mb-3 animate-bounce">
-              <UploadCloud className="w-8 h-8" />
-            </div>
-            <h3 className="text-base font-bold text-white mb-1">Drop Files to Upload</h3>
-            <p className="text-xs text-blue-200/80 max-w-xs">
-              Upload PNG, JPG, or PDF files to analyze with {meta.title} (timetables, syllabus, workout splits, assignments)
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Header Bar */}
       <div className="p-4 sm:p-5 border-b border-slate-800/80 bg-gradient-to-r from-slate-900/90 via-[#0e1529]/90 to-slate-900/90 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">

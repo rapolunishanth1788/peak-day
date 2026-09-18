@@ -225,6 +225,22 @@ export const api = {
     return res.proposedSchedule;
   },
 
+  async parseQuickEvent(text: string, referenceDate?: string): Promise<Partial<ScheduleEvent>> {
+    const res = await request<{ parsedEvent: Partial<ScheduleEvent> }>('/api/ai/parse-quick-event', {
+      method: 'POST',
+      body: JSON.stringify({ text, referenceDate }),
+    });
+    return res.parsedEvent;
+  },
+
+  async resolveScheduleConflicts(conflicts: ScheduleEvent[], allEvents: ScheduleEvent[], date: string): Promise<{ summary: string; resolvedEvents: ScheduleEvent[] }> {
+    const res = await request<{ summary: string; resolvedEvents: ScheduleEvent[] }>('/api/ai/resolve-conflicts', {
+      method: 'POST',
+      body: JSON.stringify({ conflicts, allEvents, date }),
+    });
+    return res;
+  },
+
   async askWorkoutAI(prompt: string, currentPlan: any, equipment?: string, goals?: string, experienceLevel?: string): Promise<ProposedWorkoutPlan> {
     const res = await request<{ proposedWorkout: ProposedWorkoutPlan }>('/api/ai/workout-assistant', {
       method: 'POST',

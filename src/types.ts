@@ -87,7 +87,13 @@ export type EventCategory =
   | 'personal' 
   | 'exam' 
   | 'meeting' 
-  | 'reminder';
+  | 'reminder'
+  | 'deepwork'
+  | 'client'
+  | 'standup'
+  | 'deadline';
+
+export type ScheduleScope = 'general' | 'dayOfWeek' | 'specificDate';
 
 export interface ScheduleEvent {
   id: string;
@@ -98,10 +104,19 @@ export interface ScheduleEvent {
   startTime: string; // HH:mm
   endTime: string; // HH:mm
   dayOfWeek?: number; // 0-6 (Sun-Sat) for recurring
+  daysOfWeek?: number[]; // [0-6] specific days (e.g. 1 for Mon, 2 for Tue)
+  scheduleScope?: ScheduleScope; // 'general' = every single day baseline; 'dayOfWeek' = Mon/Tue/etc; 'specificDate' = one-off date
+  disabledDaysOfWeek?: number[]; // days where a general routine is skipped (e.g. rest day on Sun)
+  isGeneralRoutine?: boolean; // true if common to every single day
   recurring?: 'none' | 'daily' | 'weekly' | 'weekdays';
   location?: string;
+  meetingUrl?: string; // Zoom, Google Meet, Teams, Classroom link
   notes?: string;
   color?: string;
+  isHighFocus?: boolean; // Deep work, exam, critical client meeting
+  completed?: boolean;
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
+  attendees?: string;
 }
 
 export interface ExerciseSet {
@@ -351,7 +366,7 @@ export type ExamPlan = ExamPreparationPlan;
 // ----------------------------------------------------
 // DEDICATED AI COPILOT & ACTION SYSTEM TYPES
 // ----------------------------------------------------
-export type AISectionType = 'workout' | 'schedule' | 'tasks' | 'academics' | 'global';
+export type AISectionType = 'workout' | 'schedule' | 'tasks' | 'academics' | 'global' | 'all';
 
 export type AIActionType = 
   | 'ADD_SCHEDULE_EVENT'
