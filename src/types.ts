@@ -57,10 +57,19 @@ export type TaskCategory =
   | 'Projects' 
   | 'Other';
 
+export type EisenhowerQuadrant = 
+  | 'q1_urgent_important'     // Do First (Crises, Deadlines)
+  | 'q2_not_urgent_important' // Schedule (Deep Work, Long-term Goals, Growth)
+  | 'q3_urgent_not_important' // Delegate / Streamline (Interruptions, Busywork)
+  | 'q4_neither';             // Eliminate / Backlog (Distractions)
+
+export type TaskStatus = 'todo' | 'in_progress' | 'in_review' | 'completed';
+
 export interface Subtask {
   id: string;
   title: string;
   completed: boolean;
+  estimatedMinutes?: number;
 }
 
 export interface Task {
@@ -78,6 +87,10 @@ export interface Task {
   completed: boolean;
   completedAt?: string;
   createdAt: string;
+  eisenhowerQuadrant?: EisenhowerQuadrant;
+  status?: TaskStatus;
+  estimatedMinutes?: number;
+  tags?: string[];
 }
 
 export type EventCategory = 
@@ -126,6 +139,8 @@ export interface ExerciseSet {
   targetWeightKg: number;
   actualWeightKg?: number;
   completed: boolean;
+  setTag?: 'normal' | 'warmup' | 'dropset' | 'failure';
+  rpe?: number;
 }
 
 export interface WorkoutExercise {
@@ -139,23 +154,27 @@ export interface WorkoutExercise {
   targetWeightKg?: number;
   restTimeSeconds?: number;
   notes?: string;
+  supersetWith?: string;
+  category?: string;
 }
 
 export type Exercise = WorkoutExercise;
 
 export interface WorkoutDayPlan {
   id: string;
-  dayName: string; // e.g. "Monday", "Push Day", "Chest + Triceps"
-  dayOfWeek?: number; // 1 = Monday, 2 = Tuesday etc.
+  dayName: string; // e.g. "Monday • Chest & Triceps (Push)"
+  dayOfWeek?: number; // 1 = Monday, 2 = Tuesday ... 7 = Sunday
   muscleGroups?: string[];
   exercises: WorkoutExercise[];
   isRestDay?: boolean;
+  recoveryAdvice?: string;
+  warmup?: string[];
 }
 
 export interface WorkoutPlan {
   id: string;
   userId: string;
-  name: string; // e.g. "PPL Split (4-Day)"
+  name: string; // e.g. "PPL Split (7-Day)"
   description?: string;
   days: WorkoutDayPlan[];
   active?: boolean;
@@ -173,6 +192,8 @@ export interface WorkoutSessionLog {
   totalVolumeKg: number;
   completedSets?: number;
   completedSetsCount?: number;
+  waterIntakeMl?: number;
+  perceivedEffort?: number;
   exercises?: {
     name: string;
     targetMuscle: string;
@@ -181,6 +202,7 @@ export interface WorkoutSessionLog {
       reps: number;
       weightKg: number;
       completed: boolean;
+      setTag?: string;
     }[];
   }[];
   notes?: string;

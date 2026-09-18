@@ -249,6 +249,67 @@ export const api = {
     return res.proposedWorkout;
   },
 
+  async generateWeeklyWorkoutPlan(params: {
+    goal?: string;
+    splitType?: string;
+    equipment?: string;
+    experienceLevel?: string;
+    studentSchedule?: string;
+  }): Promise<{
+    planName: string;
+    splitSummary: string;
+    disclaimer?: string;
+    days: any[];
+  }> {
+    const res = await request<{ weeklyPlan: any }>('/api/ai/generate-weekly-workout', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+    return res.weeklyPlan;
+  },
+
+  async decomposeTask(taskTitle: string, description?: string, category?: string, priority?: string): Promise<{
+    subtasks: { id: string; title: string; completed: boolean; estimatedMinutes?: number }[];
+    estimatedMinutes: number;
+    recommendedQuadrant: 'q1_urgent_important' | 'q2_not_urgent_important' | 'q3_urgent_not_important' | 'q4_neither';
+    suggestedTags: string[];
+    coachingTip: string;
+  }> {
+    const res = await request<{
+      subtasks: { id: string; title: string; completed: boolean; estimatedMinutes?: number }[];
+      estimatedMinutes: number;
+      recommendedQuadrant: 'q1_urgent_important' | 'q2_not_urgent_important' | 'q3_urgent_not_important' | 'q4_neither';
+      suggestedTags: string[];
+      coachingTip: string;
+    }>('/api/ai/decompose-task', {
+      method: 'POST',
+      body: JSON.stringify({ taskTitle, description, category, priority }),
+    });
+    return res;
+  },
+
+  async getExerciseCoaching(exerciseName: string, targetMuscle?: string, currentWeight?: number): Promise<{
+    formCues: string[];
+    warmupStrategy: string;
+    commonMistakes: string[];
+    targetMuscles: string[];
+    recommendedRestSeconds: number;
+    alternatives: string[];
+  }> {
+    const res = await request<{
+      formCues: string[];
+      warmupStrategy: string;
+      commonMistakes: string[];
+      targetMuscles: string[];
+      recommendedRestSeconds: number;
+      alternatives: string[];
+    }>('/api/ai/exercise-coach', {
+      method: 'POST',
+      body: JSON.stringify({ exerciseName, targetMuscle, currentWeight }),
+    });
+    return res;
+  },
+
   async askAcademicTutor(message: string, topic?: string, subject?: string, mode?: string, conversationHistory?: any[]): Promise<string> {
     const res = await request<{ reply: string }>('/api/ai/academic-tutor', {
       method: 'POST',

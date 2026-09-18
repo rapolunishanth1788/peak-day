@@ -627,6 +627,141 @@ Return a valid JSON object with:
   }
 });
 
+// 1d. AI Task Breakdown / Decomposition Engine
+app.post('/api/ai/decompose-task', async (req, res) => {
+  const user = getAuthUser(req);
+  if (!user) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const { taskTitle, description, category, priority } = req.body;
+  const ai = getGeminiAI();
+
+  if (!ai || !taskTitle) {
+    // Intelligent rule-based fallback
+    return res.json({
+      subtasks: [
+        { id: `st_${Date.now()}_1`, title: `Outline core objectives and scope for "${taskTitle}"`, completed: false, estimatedMinutes: 15 },
+        { id: `st_${Date.now()}_2`, title: 'Gather required references, documents or tools', completed: false, estimatedMinutes: 20 },
+        { id: `st_${Date.now()}_3`, title: 'Execute primary deep work phase / core deliverable', completed: false, estimatedMinutes: 45 },
+        { id: `st_${Date.now()}_4`, title: 'Review against criteria, test, and finalize', completed: false, estimatedMinutes: 15 },
+      ],
+      estimatedMinutes: 95,
+      recommendedQuadrant: priority === 'urgent' ? 'q1_urgent_important' : 'q2_not_urgent_important',
+      suggestedTags: [category || 'Focus', 'DeepWork'],
+      coachingTip: 'Break momentum resistance by starting with the first 15-minute scoping step.',
+    });
+  }
+
+  try {
+    const prompt = `You are a world-class productivity expert and cognitive psychologist.
+Task to decompose:
+Title: "${taskTitle}"
+Description: "${description || ''}"
+Category: "${category || 'General'}"
+Priority: "${priority || 'medium'}"
+
+Break this task down into 4 to 6 bite-sized, concrete, sequentially actionable subtasks.
+Provide realistic estimated minutes for each step.
+Also assign an Eisenhower matrix quadrant ("q1_urgent_important", "q2_not_urgent_important", "q3_urgent_not_important", "q4_neither").
+
+Return a valid JSON object with:
+- "subtasks": array of objects with:
+  - "title": string (imperative, concrete action)
+  - "estimatedMinutes": number (between 5 and 60)
+- "estimatedMinutes": total duration number
+- "recommendedQuadrant": one of ["q1_urgent_important", "q2_not_urgent_important", "q3_urgent_not_important", "q4_neither"]
+- "suggestedTags": array of 2-3 short strings
+- "coachingTip": short 1-sentence behavioral nudge on how to start without procrastination`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+      },
+    });
+
+    const parsed = JSON.parse(response.text || '{}');
+    const subtasks = (parsed.subtasks || []).map((st: any, i: number) => ({
+      id: `st_${Date.now()}_${i + 1}`,
+      title: st.title || 'Action step',
+      completed: false,
+      estimatedMinutes: st.estimatedMinutes || 20,
+    }));
+
+    res.json({
+      subtasks,
+      estimatedMinutes: parsed.estimatedMinutes || 60,
+      recommendedQuadrant: parsed.recommendedQuadrant || 'q2_not_urgent_important',
+      suggestedTags: parsed.suggestedTags || ['Focus'],
+      coachingTip: parsed.coachingTip || 'Start with step 1 to build immediate momentum.',
+    });
+  } catch (err: any) {
+    console.error('Task decomposition error:', err);
+    res.status(500).json({ error: 'Failed to decompose task', details: err.message });
+  }
+});
+
+// 1e. AI Exercise Coach & Form Guide
+app.post('/api/ai/exercise-coach', async (req, res) => {
+  const user = getAuthUser(req);
+  if (!user) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const { exerciseName, targetMuscle, currentWeight } = req.body;
+  const ai = getGeminiAI();
+
+  if (!ai || !exerciseName) {
+    return res.json({
+      formCues: [
+        'Engage core and maintain a neutral spine throughout the entire range of motion.',
+        'Control the eccentric (lowering) phase for 2-3 seconds to maximize muscular tension.',
+        'Drive through feet/palms explosively on the concentric phase without locking joints.',
+      ],
+      warmupStrategy: 'Perform 1-2 acclimation sets at 40-50% of working weight with focused tempo.',
+      commonMistakes: [
+        'Using excessive momentum or bouncing weight at the bottom.',
+        'Flaring elbows or losing shoulder blade retraction.',
+      ],
+      targetMuscles: [targetMuscle || 'Target Muscle Group'],
+      recommendedRestSeconds: 90,
+      alternatives: ['Dumbbell Variation', 'Cable Machine Equivalent'],
+    });
+  }
+
+  try {
+    const prompt = `You are an elite biomechanics strength coach and sports physical therapist.
+Exercise: "${exerciseName}"
+Target Muscle: "${targetMuscle || 'General'}"
+Current Working Weight: ${currentWeight ? `${currentWeight} kg/lbs` : 'Standard'}
+
+Provide concise, high-impact athletic coaching for this movement.
+Return a valid JSON object with:
+- "formCues": array of 3 bullet points with precise setup and mind-muscle cues.
+- "warmupStrategy": concise description of progressive warmup ramp-up.
+- "commonMistakes": array of 2 common technical flaws to prevent injuries.
+- "targetMuscles": array of primary and secondary muscles targeted.
+- "recommendedRestSeconds": recommended rest time in seconds (e.g. 60, 90, 120, 180).
+- "alternatives": array of 2-3 substitute exercises if equipment is occupied.`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+      },
+    });
+
+    const parsed = JSON.parse(response.text || '{}');
+    res.json(parsed);
+  } catch (err: any) {
+    console.error('Exercise coach error:', err);
+    res.status(500).json({ error: 'Failed to fetch exercise coaching', details: err.message });
+  }
+});
+
 // 2. Peak AI Workout Assistant
 app.post('/api/ai/workout-assistant', async (req, res) => {
   const user = getAuthUser(req);
@@ -717,6 +852,200 @@ Return a valid JSON object matching:
   } catch (err: any) {
     console.error('Workout AI error:', err);
     res.status(500).json({ error: 'Failed to generate workout proposal', details: err.message });
+  }
+});
+
+// 2b. Peak AI 7-Day Full Week Workout Plan Generator
+app.post('/api/ai/generate-weekly-workout', async (req, res) => {
+  const user = getAuthUser(req);
+  if (!user) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const { goal, splitType, equipment, experienceLevel, studentSchedule } = req.body;
+  const ai = getGeminiAI();
+
+  const daysOfWeek = [
+    { dayOfWeek: 1, name: 'Monday' },
+    { dayOfWeek: 2, name: 'Tuesday' },
+    { dayOfWeek: 3, name: 'Wednesday' },
+    { dayOfWeek: 4, name: 'Thursday' },
+    { dayOfWeek: 5, name: 'Friday' },
+    { dayOfWeek: 6, name: 'Saturday' },
+    { dayOfWeek: 7, name: 'Sunday' },
+  ];
+
+  if (!ai) {
+    // Top-tier science-based 7-day student weekly program fallback
+    const fallback7DayPlan = {
+      planName: `${goal || 'Hypertrophy & Strength'} 7-Day Weekly Split`,
+      splitSummary: 'Complete Monday-to-Sunday periodized program balancing progressive overload with planned recovery.',
+      disclaimer: 'Always perform a dynamic warm-up and hydrate properly. Adjust resistance to maintain safe form.',
+      days: [
+        {
+          id: `wd_mon_${Date.now()}`,
+          dayOfWeek: 1,
+          dayName: 'Monday • Chest, Shoulders & Triceps (Push A)',
+          muscleGroups: ['Chest', 'Front/Side Delts', 'Triceps'],
+          isRestDay: false,
+          warmup: ['5 min treadmill / elliptical', 'Arm swings & band pull-aparts', 'Warmup bench press sets'],
+          exercises: [
+            { id: 'ex-mon-1', name: 'Barbell / DB Bench Press', targetMuscle: 'Chest', restTimeSeconds: 90, sets: [{ setNumber: 1, targetReps: 10, targetWeightKg: 60, completed: false }, { setNumber: 2, targetReps: 8, targetWeightKg: 65, completed: false }, { setNumber: 3, targetReps: 8, targetWeightKg: 70, completed: false }, { setNumber: 4, targetReps: 6, targetWeightKg: 75, completed: false }] },
+            { id: 'ex-mon-2', name: 'Incline Dumbbell Press', targetMuscle: 'Upper Chest', restTimeSeconds: 90, sets: [{ setNumber: 1, targetReps: 10, targetWeightKg: 22, completed: false }, { setNumber: 2, targetReps: 10, targetWeightKg: 24, completed: false }, { setNumber: 3, targetReps: 8, targetWeightKg: 26, completed: false }] },
+            { id: 'ex-mon-3', name: 'Seated Overhead Dumbbell Press', targetMuscle: 'Shoulders', restTimeSeconds: 90, sets: [{ setNumber: 1, targetReps: 10, targetWeightKg: 18, completed: false }, { setNumber: 2, targetReps: 8, targetWeightKg: 20, completed: false }, { setNumber: 3, targetReps: 8, targetWeightKg: 20, completed: false }] },
+            { id: 'ex-mon-4', name: 'Cable Lateral Raises', targetMuscle: 'Lateral Delts', restTimeSeconds: 60, sets: [{ setNumber: 1, targetReps: 12, targetWeightKg: 7.5, completed: false }, { setNumber: 2, targetReps: 12, targetWeightKg: 10, completed: false }, { setNumber: 3, targetReps: 15, targetWeightKg: 7.5, completed: false }] },
+            { id: 'ex-mon-5', name: 'Tricep Rope Pushdowns', targetMuscle: 'Triceps', restTimeSeconds: 60, sets: [{ setNumber: 1, targetReps: 12, targetWeightKg: 25, completed: false }, { setNumber: 2, targetReps: 10, targetWeightKg: 30, completed: false }, { setNumber: 3, targetReps: 10, targetWeightKg: 30, completed: false }] },
+          ],
+        },
+        {
+          id: `wd_tue_${Date.now()}`,
+          dayOfWeek: 2,
+          dayName: 'Tuesday • Back, Rear Delts & Biceps (Pull A)',
+          muscleGroups: ['Lats', 'Upper Back', 'Biceps'],
+          isRestDay: false,
+          warmup: ['5 min row machine', 'Dead hang 45s', 'Scapular pull-ups'],
+          exercises: [
+            { id: 'ex-tue-1', name: 'Lat Pulldown or Weighted Pull-ups', targetMuscle: 'Lats', restTimeSeconds: 90, sets: [{ setNumber: 1, targetReps: 10, targetWeightKg: 55, completed: false }, { setNumber: 2, targetReps: 8, targetWeightKg: 60, completed: false }, { setNumber: 3, targetReps: 8, targetWeightKg: 65, completed: false }] },
+            { id: 'ex-tue-2', name: 'Chest-Supported Row', targetMuscle: 'Mid-Back', restTimeSeconds: 90, sets: [{ setNumber: 1, targetReps: 10, targetWeightKg: 40, completed: false }, { setNumber: 2, targetReps: 10, targetWeightKg: 45, completed: false }, { setNumber: 3, targetReps: 8, targetWeightKg: 50, completed: false }] },
+            { id: 'ex-tue-3', name: 'Face Pulls with External Rotation', targetMuscle: 'Rear Delts / Rotator Cuff', restTimeSeconds: 60, sets: [{ setNumber: 1, targetReps: 15, targetWeightKg: 20, completed: false }, { setNumber: 2, targetReps: 15, targetWeightKg: 22.5, completed: false }, { setNumber: 3, targetReps: 15, targetWeightKg: 22.5, completed: false }] },
+            { id: 'ex-tue-4', name: 'Incline Dumbbell Bicep Curls', targetMuscle: 'Biceps', restTimeSeconds: 60, sets: [{ setNumber: 1, targetReps: 12, targetWeightKg: 12, completed: false }, { setNumber: 2, targetReps: 10, targetWeightKg: 14, completed: false }, { setNumber: 3, targetReps: 8, targetWeightKg: 16, completed: false }] },
+            { id: 'ex-tue-5', name: 'Hammer Curls', targetMuscle: 'Brachialis & Forearms', restTimeSeconds: 60, sets: [{ setNumber: 1, targetReps: 12, targetWeightKg: 14, completed: false }, { setNumber: 2, targetReps: 10, targetWeightKg: 16, completed: false }] },
+          ],
+        },
+        {
+          id: `wd_wed_${Date.now()}`,
+          dayOfWeek: 3,
+          dayName: 'Wednesday • Legs, Quads & Calves (Legs A)',
+          muscleGroups: ['Quadriceps', 'Glutes', 'Calves'],
+          isRestDay: false,
+          warmup: ['5 min bike', 'Bodyweight deep squats & hip openers', 'Warmup barbell squats'],
+          exercises: [
+            { id: 'ex-wed-1', name: 'Barbell Back Squat / Hack Squat', targetMuscle: 'Quads & Glutes', restTimeSeconds: 120, sets: [{ setNumber: 1, targetReps: 8, targetWeightKg: 80, completed: false }, { setNumber: 2, targetReps: 8, targetWeightKg: 90, completed: false }, { setNumber: 3, targetReps: 6, targetWeightKg: 100, completed: false }] },
+            { id: 'ex-wed-2', name: 'Leg Press (Quad Stance)', targetMuscle: 'Quads', restTimeSeconds: 90, sets: [{ setNumber: 1, targetReps: 10, targetWeightKg: 140, completed: false }, { setNumber: 2, targetReps: 10, targetWeightKg: 160, completed: false }, { setNumber: 3, targetReps: 10, targetWeightKg: 180, completed: false }] },
+            { id: 'ex-wed-3', name: 'Leg Extension', targetMuscle: 'Quad Isolation', restTimeSeconds: 60, sets: [{ setNumber: 1, targetReps: 12, targetWeightKg: 45, completed: false }, { setNumber: 2, targetReps: 12, targetWeightKg: 50, completed: false }, { setNumber: 3, targetReps: 15, targetWeightKg: 45, completed: false }] },
+            { id: 'ex-wed-4', name: 'Standing Calf Raises', targetMuscle: 'Gastrocnemius', restTimeSeconds: 60, sets: [{ setNumber: 1, targetReps: 15, targetWeightKg: 60, completed: false }, { setNumber: 2, targetReps: 15, targetWeightKg: 70, completed: false }, { setNumber: 3, targetReps: 20, targetWeightKg: 60, completed: false }] },
+            { id: 'ex-wed-5', name: 'Hanging Leg Raises / Core', targetMuscle: 'Abs', restTimeSeconds: 60, sets: [{ setNumber: 1, targetReps: 12, targetWeightKg: 0, completed: false }, { setNumber: 2, targetReps: 12, targetWeightKg: 0, completed: false }, { setNumber: 3, targetReps: 12, targetWeightKg: 0, completed: false }] },
+          ],
+        },
+        {
+          id: `wd_thu_${Date.now()}`,
+          dayOfWeek: 4,
+          dayName: 'Thursday • Active Recovery, Mobility & Core',
+          muscleGroups: ['Core', 'Full Body Mobility', 'Cardiovascular System'],
+          isRestDay: true,
+          recoveryAdvice: 'Low-intensity recovery day. Perform 20-30 min brisk walk or light cycle, 15 min mobility/foam rolling, and drink 3 liters of water.',
+          warmup: ['Cat-cow stretch', 'World’s greatest stretch', 'Thoracic spine rotations'],
+          exercises: [
+            { id: 'ex-thu-1', name: 'Brisk Incline Treadmill Walk', targetMuscle: 'Cardio & Recovery', restTimeSeconds: 0, sets: [{ setNumber: 1, targetReps: 25, targetWeightKg: 0, completed: false }] },
+            { id: 'ex-thu-2', name: 'Plank Holds & Deadbugs', targetMuscle: 'Deep Core', restTimeSeconds: 60, sets: [{ setNumber: 1, targetReps: 60, targetWeightKg: 0, completed: false }, { setNumber: 2, targetReps: 60, targetWeightKg: 0, completed: false }] },
+            { id: 'ex-thu-3', name: 'Full Body Mobility & Hamstring Stretch', targetMuscle: 'Flexibility', restTimeSeconds: 0, sets: [{ setNumber: 1, targetReps: 15, targetWeightKg: 0, completed: false }] },
+          ],
+        },
+        {
+          id: `wd_fri_${Date.now()}`,
+          dayOfWeek: 5,
+          dayName: 'Friday • Upper Body Power & Hypertrophy',
+          muscleGroups: ['Chest', 'Upper Back', 'Deltoids', 'Arms'],
+          isRestDay: false,
+          warmup: ['Arm circles & light dumbbell warmups', 'Scapular pushups'],
+          exercises: [
+            { id: 'ex-fri-1', name: 'Incline Barbell Bench Press', targetMuscle: 'Upper Chest', restTimeSeconds: 90, sets: [{ setNumber: 1, targetReps: 8, targetWeightKg: 50, completed: false }, { setNumber: 2, targetReps: 8, targetWeightKg: 55, completed: false }, { setNumber: 3, targetReps: 8, targetWeightKg: 60, completed: false }] },
+            { id: 'ex-fri-2', name: 'T-Bar Row or Barbell Row', targetMuscle: 'Back Thickness', restTimeSeconds: 90, sets: [{ setNumber: 1, targetReps: 8, targetWeightKg: 45, completed: false }, { setNumber: 2, targetReps: 8, targetWeightKg: 50, completed: false }, { setNumber: 3, targetReps: 8, targetWeightKg: 55, completed: false }] },
+            { id: 'ex-fri-3', name: 'Dumbbell Lateral Raises (Drop-set)', targetMuscle: 'Side Delts', restTimeSeconds: 60, sets: [{ setNumber: 1, targetReps: 12, targetWeightKg: 10, completed: false }, { setNumber: 2, targetReps: 12, targetWeightKg: 10, completed: false }, { setNumber: 3, targetReps: 15, targetWeightKg: 8, completed: false }] },
+            { id: 'ex-fri-4', name: 'Dips / Tricep Pushdown', targetMuscle: 'Triceps & Lower Chest', restTimeSeconds: 60, sets: [{ setNumber: 1, targetReps: 10, targetWeightKg: 0, completed: false }, { setNumber: 2, targetReps: 10, targetWeightKg: 0, completed: false }] },
+            { id: 'ex-fri-5', name: 'EZ-Bar Preacher Curls', targetMuscle: 'Biceps Peak', restTimeSeconds: 60, sets: [{ setNumber: 1, targetReps: 10, targetWeightKg: 25, completed: false }, { setNumber: 2, targetReps: 10, targetWeightKg: 27.5, completed: false }] },
+          ],
+        },
+        {
+          id: `wd_sat_${Date.now()}`,
+          dayOfWeek: 6,
+          dayName: 'Saturday • Hamstrings, Glutes & Lower Back (Legs B)',
+          muscleGroups: ['Hamstrings', 'Glutes', 'Erectors'],
+          isRestDay: false,
+          warmup: ['Glute bridges', 'Bird dogs', 'Light Romanian deadlift warmups'],
+          exercises: [
+            { id: 'ex-sat-1', name: 'Romanian Deadlift (RDL)', targetMuscle: 'Hamstrings & Glutes', restTimeSeconds: 120, sets: [{ setNumber: 1, targetReps: 10, targetWeightKg: 60, completed: false }, { setNumber: 2, targetReps: 8, targetWeightKg: 75, completed: false }, { setNumber: 3, targetReps: 8, targetWeightKg: 85, completed: false }] },
+            { id: 'ex-sat-2', name: 'Lying or Seated Leg Curl', targetMuscle: 'Hamstring Isolation', restTimeSeconds: 60, sets: [{ setNumber: 1, targetReps: 12, targetWeightKg: 35, completed: false }, { setNumber: 2, targetReps: 10, targetWeightKg: 40, completed: false }, { setNumber: 3, targetReps: 10, targetWeightKg: 40, completed: false }] },
+            { id: 'ex-sat-3', name: 'Bulgarian Split Squats', targetMuscle: 'Glutes & Quads', restTimeSeconds: 90, sets: [{ setNumber: 1, targetReps: 10, targetWeightKg: 14, completed: false }, { setNumber: 2, targetReps: 10, targetWeightKg: 16, completed: false }] },
+            { id: 'ex-sat-4', name: 'Seated Calf Raises', targetMuscle: 'Soleus', restTimeSeconds: 60, sets: [{ setNumber: 1, targetReps: 15, targetWeightKg: 35, completed: false }, { setNumber: 2, targetReps: 15, targetWeightKg: 40, completed: false }] },
+          ],
+        },
+        {
+          id: `wd_sun_${Date.now()}`,
+          dayOfWeek: 7,
+          dayName: 'Sunday • Rest & Nervous System Regeneration',
+          muscleGroups: ['Full Body Recovery'],
+          isRestDay: true,
+          recoveryAdvice: 'Complete rest day. Prioritize sleep (8+ hours), protein replenishment, hydration, and mental reset for the upcoming week.',
+          warmup: ['Gentle yoga or morning mobility flow', '10-minute deep breathing session'],
+          exercises: [
+            { id: 'ex-sun-1', name: 'Light Outdoor Walk or Nature Stroll', targetMuscle: 'Aerobic Recovery', restTimeSeconds: 0, sets: [{ setNumber: 1, targetReps: 30, targetWeightKg: 0, completed: false }] },
+            { id: 'ex-sun-2', name: 'Full Body Passive Foam Rolling', targetMuscle: 'Fascia & Muscle Relief', restTimeSeconds: 0, sets: [{ setNumber: 1, targetReps: 15, targetWeightKg: 0, completed: false }] },
+          ],
+        },
+      ],
+    };
+    return res.json({ weeklyPlan: fallback7DayPlan });
+  }
+
+  try {
+    const promptText = `You are Peak AI, a certified master strength and conditioning specialist.
+Create a complete, realistic 7-day day-wise workout plan for a full week (Monday through Sunday):
+Goal: ${goal || 'Hypertrophy & Student Fitness'}
+Split style: ${splitType || 'Push Pull Legs + Upper Lower'}
+Equipment: ${equipment || 'Full Gym or Dumbbells'}
+Experience level: ${experienceLevel || 'Intermediate'}
+Student schedule notes: ${studentSchedule || 'College student balancing study and exams'}
+
+Requirements:
+- Must have exactly 7 days: Monday (dayOfWeek 1) through Sunday (dayOfWeek 7).
+- Designate 1 or 2 days as planned rest/active recovery days ("isRestDay": true), with recoveryAdvice.
+- For training days ("isRestDay": false), provide 4-6 high-yield compound & isolation exercises.
+- Each exercise must have realistic targetSets (e.g. 3 or 4), targetReps (e.g. 8-12), targetWeightKg, and restTimeSeconds.
+- Include a 2-3 step warmup list for each day.
+
+Return a valid JSON object matching:
+{
+  "planName": string,
+  "splitSummary": string,
+  "disclaimer": string,
+  "days": [
+    {
+      "id": string,
+      "dayOfWeek": number (1 to 7),
+      "dayName": string (e.g. "Monday • Chest & Triceps (Push)"),
+      "muscleGroups": string[],
+      "isRestDay": boolean,
+      "recoveryAdvice": string optional,
+      "warmup": string[],
+      "exercises": [
+        {
+          "id": string,
+          "name": string,
+          "targetMuscle": string,
+          "restTimeSeconds": number,
+          "sets": [
+            { "setNumber": number, "targetReps": number, "targetWeightKg": number, "completed": false }
+          ]
+        }
+      ]
+    }
+  ]
+}`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents: promptText,
+      config: {
+        responseMimeType: 'application/json',
+      },
+    });
+
+    const parsed = JSON.parse(response.text || '{}');
+    res.json({ weeklyPlan: parsed });
+  } catch (err: any) {
+    console.error('Generate weekly workout error:', err);
+    res.status(500).json({ error: 'Failed to generate weekly workout plan', details: err.message });
   }
 });
 
