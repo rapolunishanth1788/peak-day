@@ -43,9 +43,9 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
     const file = files[0];
     setUploadError(null);
 
-    // Validate size (max 5MB for base64 storage)
-    if (file.size > 5 * 1024 * 1024) {
-      setUploadError('File exceeds 5MB limit. Please upload a smaller PDF or PNG.');
+    // Validate size (max 50MB for storage)
+    if (file.size > 50 * 1024 * 1024) {
+      setUploadError('File exceeds 50MB limit. Please upload a PDF or PNG up to 50MB.');
       return;
     }
 
@@ -171,7 +171,7 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
               {isUploading ? 'Uploading file...' : 'Drop your PDF or PNG here, or click to browse'}
             </p>
             <p className="text-[11px] text-slate-500 mt-0.5">
-              Supports .pdf, .png, .jpg up to 5MB
+              Supports .pdf, .png, .jpg up to 50MB
             </p>
           </div>
         </div>

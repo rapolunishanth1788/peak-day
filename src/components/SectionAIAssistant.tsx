@@ -185,9 +185,9 @@ export const SectionAIAssistant: React.FC<SectionAIAssistantProps> = ({
     const filesArray = Array.from(fileList);
 
     for (const file of filesArray) {
-      // 15MB file limit
-      if (file.size > 15 * 1024 * 1024) {
-        setFileError(`File "${file.name}" exceeds 15MB limit.`);
+      // 50MB file limit
+      if (file.size > 50 * 1024 * 1024) {
+        setFileError(`File "${file.name}" exceeds 50MB limit.`);
         continue;
       }
 
@@ -769,7 +769,7 @@ export const SectionAIAssistant: React.FC<SectionAIAssistantProps> = ({
           <span>Supports PNG, JPG, PDF attachments. AI actions update records with verification.</span>
           <span className="flex items-center gap-1">
             <Zap className="w-2.5 h-2.5 text-amber-400" />
-            <span>Search Grounded with Gemini</span>
+            <span>AI Grounded Intelligence</span>
           </span>
         </div>
       </div>
